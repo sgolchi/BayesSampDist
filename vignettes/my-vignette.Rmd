@@ -1,0 +1,61 @@
+---
+title: "Example"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Here we fit the model to the sampling distribution of the test statistic at simulation scenarios in 'cases' to estimate the type I error rate for the adjusted model.
+```{r code1}
+library(BayesSampDist)
+library(ggplot2)
+load('../data/sim_adjusted.Rdata')
+load('../data/cases.Rdata')
+pars0 = T1E(cases, dat_adj)
+```
+Then we can predict T1E for any n and u:
+```{r code2}
+testn = seq(20, 1000, 10)
+df0 = pred0(testn, u = 0.975, pars0)
+ggplot(df0, aes(x = n, y = psh)) + geom_line(aes(y = psh)) +
+  geom_ribbon(aes(ymin = psl, ymax = psu), linetype = 2, alpha = 0.2) + 
+  geom_hline(yintercept = 0.025, linetype= 2) +
+  ylab('type I error') +
+  theme_bw() +
+  theme(axis.title = element_text(size = 12, face = 'bold'),
+        legend.title = element_text(size = 12, face = 'bold'),
+        axis.text = element_text(size = 12),
+        strip.text = element_text(size = 12))
+```
+
+Fit the model to estimate power:
+```{r code3}
+parsA = power(cases, dat_adj)
+```
+Predict power for any set of effect/sample sizes and u:
+```{r code4}
+n = seq(20, 1000, 10)
+theta = seq(-2, -0.5, 0.25)
+testcases = data.frame(expand.grid(n = n, theta = theta))
+dfA = predA(testcases, u = 0.975, parsA)
+ggplot(dfA, aes(x = n, y = psh, color = eff)) + geom_line(aes(y = psh)) +
+  geom_ribbon(aes(ymin = psl, ymax = psu, fill = eff), linetype = 2, alpha =   0.5) + 
+  ylab('power') +
+  theme_bw() +
+  scale_color_grey(start = 0.2, end = 0.8) +
+  scale_fill_grey(start = 0.2, end = 0.8) +
+  theme(axis.title = element_text(size = 12, face = 'bold'),
+        legend.title = element_text(size = 12, face = 'bold'),
+        axis.text = element_text(size = 12),
+        strip.text = element_text(size = 12))
+```
+
